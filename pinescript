@@ -1,0 +1,42 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © p022487devnbpjc1
+
+//@version=5
+indicator("Test script", overlay = true)
+
+i_startDate= input.time(timestamp("2023-01-15 00:00:00"), "Start Date" , group = "Backtest Range")
+i_endDate= input.time(timestamp("2023-02-01 00:00:00"), "End Date" , group = "Backtest Range")
+
+inTradeWindow = time >= i_startDate and time <= i_endDate ? true : false 
+//-----------------------------------------
+//               INPUTS
+//-----------------------------------------
+
+
+i_tolerance = input.float(0.1, "Tolerance", 0, 1000)
+
+//-----------------------------------------
+//              FUNCTIONS
+//-----------------------------------------
+
+f_isBodyMatch() =>
+    // set the allowable range for the open and close based on the tolerance
+    openHigh = open[2] + i_tolerance
+    openLow = open[2] - i_tolerance
+    closeHigh = close[2] + i_tolerance
+    closeLow = close[2] - i_tolerance
+    // Test if the open of the previous bar are within the tolarance for 2 bars back
+    isOpenMatch = close[1] <= openHigh and close[1] >= openLow
+    isCloseMatch = open[1] <= closeHigh and open[1] >= closeLow
+    // Return true if both the open and close are matching
+    isOpenMatch and isCloseMatch
+
+//-----------------------------------------
+//              EXECUTION
+//-----------------------------------------
+
+// if we have a match, then we can draw the lines
+if f_isBodyMatch() and inTradeWindow 
+
+    line.new(time[1], open[1], time, open[1], xloc.bar_time, extend.right, color.green)
+    line.new(time[1], close[1], time, close[1], xloc.bar_time, extend.right, color.red)
